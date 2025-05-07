@@ -1,0 +1,16 @@
+{"timestamp":"2025-04-03T19:21:51.698Z","user":"desconocido","spl":"nv","rate_id":"333","field":"Rate_ID","from":"333","to":"444"}
+{"timestamp":"2025-04-03T19:29:20.146Z","user":"desconocido","spl":"nv","rate_id":"444","field":"Rate_ID","from":"444","to":"555"}
+{"timestamp":"2025-04-03T19:38:19.620Z","user":"desconocido","spl":"nv","rate_id":"555","field":"Rate_ID","from":"555","to":"11"}
+{"timestamp":"2025-04-03T19:41:21.792Z","user":34,"spl":"nv","rate_id":"11","field":"Rate_ID","from":"11","to":"10"}
+{"timestamp":"2025-04-03T19:46:15.481Z","user":34,"spl":"nv","rate_id":"10","field":"Rate_ID","from":"10","to":"100"}
+{"timestamp":"2025-04-03T19:47:56.313Z","user":"desconocido","spl":"nv","rate_id":"100","field":"Rate_ID","from":"100","to":"10"}
+{"timestamp":"2025-04-03T19:49:45.103Z","user":"admin","spl":"nv","rate_id":"10","field":"Rate_ID","from":"10","to":"100"}
+{"timestamp":"2025-04-03T20:52:55.666Z","user":"admin","spl":"ne","rate_id":"variable","field":"Rate_ID","from":"variable","to":"calling"}
+{"timestamp":"2025-04-03T20:57:27.812Z","user":"admin","spl":"ne","rate_id":"calling","field":"Rate_ID","from":"calling","to":"multiples efectos"}
+{"timestamp":"2025-04-03T21:05:17.736Z","user":"admin","spl":"nv","rate_id":"100","field":"Rate_ID","from":"100","to":"toco el cielo"}
+{"timestamp":"2025-04-03T21:12:25.796Z","user":"admin","spl":"spe","utility_name":"NYSEG","rate_id":"151190","field":"Rate_ID","from":"151190","to":"toco el cielo remix"}
+{"timestamp":"2025-04-03T21:36:28.463Z","user":"admin","spl":"nv","utility_name":"AEP OH Power","rate_id":"toco el cielo","field":"Rate_ID","from":"toco el cielo","to":"vacaciones en tecca"}
+{"timestamp":"2025-04-03T21:37:07.047Z","user":"admin","spl":"nge","utility_name":"PG&E","rate_id":"56909","field":"Rate","from":"0.0000","to":"1.0"}
+{"timestamp":"2025-04-03T21:37:07.047Z","user":"admin","spl":"nv","utility_name":"AEP OH Power","rate_id":"vacaciones en tecca","field":"Rate_ID","from":"vacaciones en tecca","to":"vacas de tecca"}
+{"timestamp":"2025-04-03T21:37:07.047Z","user":"admin","spl":"nv","utility_name":"AEP OH Power","rate_id":"vacaciones en tecca","field":"Rate","from":"0.0900","to":"1.0"}
+{"timestamp":"2025-04-03T21:40:53.849Z","user":"admin","spl":"ne","utility_name":"PSE&G-gas","rate_id":"multiples efectos","field":"Rate_ID","from":"multiples efectos","to":"xxx"}

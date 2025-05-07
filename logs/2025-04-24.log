@@ -1,0 +1,4 @@
+{"timestamp":"2025-04-24T15:25:10.053Z","user":"desconocido","spl":"nv","utility_name":"Duke Energy","rate_id":"Duke_TM_12MTH_031325","field":"Rate","from":"0.0986","to":"0.101"}
+{"timestamp":"2025-04-24T15:25:10.053Z","user":"desconocido","spl":"nv","utility_name":"AEP OH Power","rate_id":"AEPOH_TM_12MTH_022525","field":"Rate","from":"0.0915","to":"0.0959"}
+{"timestamp":"2025-04-24T15:25:10.053Z","user":"desconocido","spl":"nv","utility_name":"AEP Columbus Southern","rate_id":"AEPCSP_TM_12MTH_022525","field":"Rate","from":"0.0915","to":"0.0959"}
+{"timestamp":"2025-04-24T15:26:00.848Z","user":"desconocido","spl":"nv","utility_name":"Duke Energy","rate_id":"Duke_TM_12MTH_031325","field":"Rate","from":"0.1010","to":"0.1001"}

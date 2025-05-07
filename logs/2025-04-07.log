@@ -1,0 +1,4 @@
+{"timestamp":"2025-04-07T14:56:09.400Z","user":"admin","spl":"ne","utility_name":"PSE&G-gas","rate_id":"xxx","field":"Rate_ID","from":"xxx","to":"variable"}
+{"timestamp":"2025-04-07T14:59:08.421Z","user":"admin","spl":"ne","utility_name":"PSE&G-gas","rate_id":"variable","field":"Rate_ID","from":"variable","to":"xx"}
+{"timestamp":"2025-04-07T15:02:33.925Z","user":"admin","spl":"ne","utility_name":"PSE&G-gas","rate_id":"xx","field":"Rate_ID","from":"xx","to":"test"}
+{"timestamp":"2025-04-07T15:03:27.450Z","user":"admin","spl":"ne","utility_name":"PSE&G-gas","rate_id":"test","field":"Rate","from":"0.5000","to":"0.5001"}
