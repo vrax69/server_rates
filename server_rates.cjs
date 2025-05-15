@@ -1,13 +1,29 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const https = require('https');
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const jwt = require("jsonwebtoken");
-const { notifyRateChange } = require("/home/vrax/node_apps/discord_bot/discordNotifier.js");
+const path = require('path');
+const http = require('http');
+const https = require('https');
 
+// Resolver la ruta del notifier automáticamente según el entorno
+let notifierPath;
+if (process.env.NOTIFIER_PATH) {
+    // Si tienes la variable en tu .env, úsala (útil para rutas absolutas)
+    notifierPath = process.env.NOTIFIER_PATH;
+} else if (process.platform === "win32") {
+    // Windows: Ruta absoluta local
+    notifierPath = path.join(
+        "C:/Users/itadmin/Documents/node_apps/discord_bot/discordNotifier.js"
+    );
+} else {
+    // Linux: Ruta absoluta en el server
+    notifierPath = "/home/vrax/node_apps/discord_bot/discordNotifier.js";
+}
 
+const { notifyRateChange } = require(notifierPath);
 
 const JWT_SECRET ="Nwp"; // ⬅️ así lo extraes correctamente
 
@@ -34,20 +50,15 @@ app.use(cors({
 }));
 app.use(cookieParser());
 
-// Configuración de certificados SSL
-const options = {
-  key: fs.readFileSync('/etc/letsencrypt/live/nwfg.net/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/nwfg.net/fullchain.pem')
-};
-
 // Middleware para manejar conexiones dinámicas
 app.use((req, res, next) => {
   req.db = mysql.createConnection({
-    host: 'localhost',
-    user: 'admin',
-    password: 'Usuario19.',
-    database: 'rates_db'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
   });
+
 
   req.db.connect(err => {
     if (err) {
@@ -61,21 +72,6 @@ app.use((req, res, next) => {
   // req.on('end', () => {
   //   if (req.db) req.db.end();
   // });
-});
-
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'admin',
-  password: 'Usuario19.',
-  database: 'rates_db'
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('Error conectando a MySQL:', err);
-    return;
-  }
-  console.log('Conectado a la base de datos');
 });
 
 // Endpoint para obtener los datos de la tabla Rates
@@ -321,7 +317,20 @@ app.post('/api/rates/update', express.json(), async (req, res) => {
 });
 
 const PORT = 3002;
-// Crear servidor HTTPS
-https.createServer(options, app).listen(PORT, () => {
-  console.log(`Servidor HTTPS corriendo en https://nwfg.net:${PORT}`);
-});
+
+// Código de arranque del servidor
+if (process.env.NODE_ENV === 'production') {
+  // En producción: HTTPS con certificados reales
+  const httpsOptions = {
+    key: fs.readFileSync('/etc/letsencrypt/live/nwfg.net/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/nwfg.net/fullchain.pem')
+  };
+  https.createServer(httpsOptions, app).listen(PORT, () => {
+    console.log(`🚀 SERVER_RATES EN PRODUCCIÓN en https://nwfg.net:${PORT}`);
+  });
+} else {
+  // En desarrollo: HTTP normal
+  http.createServer(app).listen(PORT, () => {
+    console.log(`🚀 SERVER_RATES EN DEV en http://localhost:${PORT}`);
+  });
+}
