@@ -37,14 +37,20 @@ if (!JWT_SECRET) {
 
 const app = express();
 
-const allowedOrigins = ["https://nwfg.net", "https://www.nwfg.net"];
+const allowedOrigins = [
+  "https://nwfg.net",
+  "https://www.nwfg.net",
+  "http://localhost:3000",      // <-- Agregado para desarrollo local
+  "https://localhost:3000"     // <-- Agregado por si usas https local
+];
 
 app.use(cors({
   origin: function (origin, callback) {
+    console.log("CORS Origin recibido:", origin); // <-- Log para debug
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin);
+      callback(null, true); // <-- true para permitir el origin
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error("Not allowed by CORS: " + origin));
     }
   },
   credentials: true
