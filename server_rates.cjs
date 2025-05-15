@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
@@ -326,11 +327,11 @@ if (process.env.NODE_ENV === 'production') {
     cert: fs.readFileSync('/etc/letsencrypt/live/nwfg.net/fullchain.pem')
   };
   https.createServer(httpsOptions, app).listen(PORT, () => {
-    console.log(`🚀 SERVER_RATES EN PRODUCCIÓN en https://nwfg.net:${PORT}`);
+    console.log(`🚀 SERVER_RATES EN ${process.env.NODE_ENV} en https://nwfg.net:${PORT}`);
   });
 } else {
   // En desarrollo: HTTP normal
   http.createServer(app).listen(PORT, () => {
-    console.log(`🚀 SERVER_RATES EN DEV en http://localhost:${PORT}`);
+    console.log(`🚀 SERVER_RATES EN ${process.env.NODE_ENV} en http://localhost:${PORT}`);
   });
 }
