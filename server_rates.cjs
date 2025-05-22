@@ -9,6 +9,10 @@ const path = require('path');
 const http = require('http');
 const https = require('https');
 
+if (process.env.NODE_ENV === 'development') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 // Resolver la ruta del notifier automáticamente según el entorno
 let notifierPath;
 if (process.env.NOTIFIER_PATH) {
@@ -63,9 +67,9 @@ app.use((req, res, next) => {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+    database: process.env.DB_NAME,
+    ssl: process.env.NODE_ENV === 'development' ? { rejectUnauthorized: false } : undefined
   });
-
 
   req.db.connect(err => {
     if (err) {
