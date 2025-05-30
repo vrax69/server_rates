@@ -13,22 +13,8 @@ if (process.env.NODE_ENV === 'development') {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
-// Resolver la ruta del notifier automáticamente según el entorno
-let notifierPath;
-if (process.env.NOTIFIER_PATH) {
-    // Si tienes la variable en tu .env, úsala (útil para rutas absolutas)
-    notifierPath = process.env.NOTIFIER_PATH;
-} else if (process.platform === "win32") {
-    // Windows: Ruta absoluta local
-    notifierPath = path.join(
-        "C:/Users/itadmin/Documents/node_apps/discord_bot/discordNotifier.js"
-    );
-} else {
-    // Linux: Ruta absoluta en el server
-    notifierPath = "/home/vrax/node_apps/discord_bot/discordNotifier.js";
-}
-
-const { notifyRateChange } = require(notifierPath);
+// Importar el notifier usando ruta relativa
+const { notifyRateChange } = require(path.join(__dirname, '..', 'discord_bot', 'discordNotifier.js'));
 
 const JWT_SECRET ="Nwp"; // ⬅️ así lo extraes correctamente
 
