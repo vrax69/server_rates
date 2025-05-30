@@ -327,6 +327,23 @@ app.post('/api/rates/update', express.json(), async (req, res) => {
   });
 });
 
+// Endpoint para obtener los campos de factura de una utility específica
+app.get('/api/bill-fields', (req, res) => {
+  const utility = req.query.utility;
+  if (!utility) {
+    return res.status(400).json({ error: "Falta el parámetro 'utility'" });
+  }
+
+  const query = "SELECT * FROM Utility_Bill_Fields WHERE Standard_Utility_Name = ?";
+  req.db.query(query, [utility], (err, results) => {
+    if (err) {
+      console.error('Error ejecutando la consulta de bill-fields:', err);
+      return res.status(500).json({ error: 'Error al obtener los campos de factura' });
+    }
+    res.json(results);
+  });
+});
+
 const PORT = 3002;
 
 // Código de arranque del servidor
