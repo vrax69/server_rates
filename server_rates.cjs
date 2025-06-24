@@ -47,28 +47,22 @@ app.use(cors({
 }));
 app.use(cookieParser());
 
-// Middleware para manejar conexiones dinámicas
+// 1. Crear el pool al inicio
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10, // Puedes ajustar este valor
+  queueLimit: 0,
+  ssl: process.env.NODE_ENV === 'development' ? { rejectUnauthorized: false } : undefined
+});
+
+// 2. Middleware para asignar el pool (ya no una conexión individual)
 app.use((req, res, next) => {
-  req.db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    ssl: process.env.NODE_ENV === 'development' ? { rejectUnauthorized: false } : undefined
-  });
-
-  req.db.connect(err => {
-    if (err) {
-      console.error('Error al conectar a la base de datos:', err);
-      return res.status(500).send('Error en la conexión a la base de datos');
-    }
-    next();
-  });
-
-  // COMENTAR O ELIMINAR ESTA PARTE:
-  // req.on('end', () => {
-  //   if (req.db) req.db.end();
-  // });
+  req.db = pool;
+  next();
 });
 
 // Endpoint para obtener los datos de la tabla Rates
@@ -215,101 +209,108 @@ app.post('/api/rates/update', express.json(), async (req, res) => {
   const connection = req.db;
   const logPath = `/home/vrax/node_apps/server_rates/logs/${new Date().toISOString().slice(0,10)}.log`;
 
-  connection.beginTransaction((err) => {
+  req.db.getConnection((err, connection) => {
     if (err) {
-      console.error("❌ Error iniciando transacción:", err);
-      connection.end(); // Cerrar conexión en caso de error
-      return res.status(500).json({
-        message: "Error iniciando transacción",
-        error: err.message,
-        stack: err.stack
-      });
+      console.error("❌ Error obteniendo conexión del pool:", err);
+      return res.status(500).json({ message: "Error de conexión a la base de datos" });
     }
 
-    console.log("📝 SQL Final generado:");
-    updates.forEach((q, i) => console.log(`  [${i + 1}] ${q}`));
-
-    const execQuery = (q) => new Promise((resolve, reject) => {
-      connection.query(q, (err, results) => {
-        if (err) {
-          console.error("❌ Error en la query individual:", q);
-          console.error("❌ Mensaje:", err.message);
-          console.error("❌ SQL:", err.sql);
-          return reject(err);
-        }
-        console.log(`✅ Query ejecutada: ${q}`);
-        console.log(`   Filas afectadas: ${results.affectedRows}`);
-        resolve(results);
-      });
-    });
-
-    Promise.all(updates.map(execQuery))
-      .then((results) => {
-        connection.commit((err) => {
-          if (err) {
-            console.error("❌ Error al hacer commit:", err);
-            connection.rollback(() => {
-              connection.end(); // Cerrar conexión después de rollback
-            });
-            return res.status(500).json({
-              message: "Error al confirmar cambios",
-              error: err.message,
-              stack: err.stack
-            });
-          }
-
-          fs.appendFile(logPath, logEntries.join('\n') + '\n', (err) => {
-            if (err) console.error("⚠️ Error al guardar log:", err);
-          });
-
-          // Notificación a Discord
-          logEntries.forEach(logEntry => {
-            try {
-              const entry = JSON.parse(logEntry);
-              notifyRateChange({
-                user,
-                spl: entry.spl,
-                utility_name: entry.utility_name, // <-- Nuevo
-                rate_id: entry.rate_id,
-                field: entry.field,
-                from: entry.from,
-                to: entry.to
-              });
-              
-
-            } catch (error) {
-              console.error("⚠️ Error al enviar notificación a Discord:", error);
-            }
-          });
-
-          console.log("✅ Transacción completada exitosamente");
-          connection.end(); // Cerrar conexión explícitamente
-          res.json({ 
-            message: "Cambios aplicados correctamente.",
-            updates: results.map(r => r.affectedRows).reduce((a, b) => a + b, 0)
-          });
-        });
-      })
-      .catch((err) => {
-        console.error("❌ Error al aplicar cambios:");
-        console.error("❌ Mensaje:", err.message);
-        console.error("❌ SQL message:", err.sqlMessage);
-        console.error("❌ Código:", err.code);
-        console.error("❌ Stack:", err.stack);
-        
-        connection.rollback(() => {
-          connection.end(); // Cerrar conexión después de rollback
-        });
-        
-        res.status(500).json({
-          message: "Error al aplicar los cambios.",
-          error: err.sqlMessage || err.message,
-          code: err.code || "UNKNOWN",
-          sql: err.sql || null,
-          raw: JSON.stringify(err, Object.getOwnPropertyNames(err)),
+    connection.beginTransaction((err) => {
+      if (err) {
+        connection.release();
+        console.error("❌ Error iniciando transacción:", err);
+        return res.status(500).json({
+          message: "Error iniciando transacción",
+          error: err.message,
           stack: err.stack
         });
+      }
+
+      console.log("📝 SQL Final generado:");
+      updates.forEach((q, i) => console.log(`  [${i + 1}] ${q}`));
+
+      const execQuery = (q) => new Promise((resolve, reject) => {
+        connection.query(q, (err, results) => {
+          if (err) {
+            console.error("❌ Error en la query individual:", q);
+            console.error("❌ Mensaje:", err.message);
+            console.error("❌ SQL:", err.sql);
+            return reject(err);
+          }
+          console.log(`✅ Query ejecutada: ${q}`);
+          console.log(`   Filas afectadas: ${results.affectedRows}`);
+          resolve(results);
+        });
       });
+
+      Promise.all(updates.map(execQuery))
+        .then((results) => {
+          connection.commit((err) => {
+            if (err) {
+              console.error("❌ Error al hacer commit:", err);
+              connection.rollback(() => {
+                connection.release();
+              });
+              return res.status(500).json({
+                message: "Error al confirmar cambios",
+                error: err.message,
+                stack: err.stack
+              });
+            }
+
+            fs.appendFile(logPath, logEntries.join('\n') + '\n', (err) => {
+              if (err) console.error("⚠️ Error al guardar log:", err);
+            });
+
+            // Notificación a Discord
+            logEntries.forEach(logEntry => {
+              try {
+                const entry = JSON.parse(logEntry);
+                notifyRateChange({
+                  user,
+                  spl: entry.spl,
+                  utility_name: entry.utility_name, // <-- Nuevo
+                  rate_id: entry.rate_id,
+                  field: entry.field,
+                  from: entry.from,
+                  to: entry.to
+                });
+                
+
+              } catch (error) {
+                console.error("⚠️ Error al enviar notificación a Discord:", error);
+              }
+            });
+
+            console.log("✅ Transacción completada exitosamente");
+            connection.release();
+            res.json({ 
+              message: "Cambios aplicados correctamente.",
+              updates: results.map(r => r.affectedRows).reduce((a, b) => a + b, 0)
+            });
+          });
+        })
+        .catch((err) => {
+          console.error("❌ Error al aplicar cambios:");
+          console.error("❌ Mensaje:", err.message);
+          console.error("❌ SQL message:", err.sqlMessage);
+          console.error("❌ Código:", err.code);
+          console.error("❌ Stack:", err.stack);
+          
+          connection.rollback(() => {
+            connection.release();
+          });
+          
+          res.status(500).json({
+            message: "Error al aplicar los cambios.",
+            error: err.sqlMessage || err.message,
+            code: err.code || "UNKNOWN",
+            sql: err.sql || null,
+            raw: JSON.stringify(err, Object.getOwnPropertyNames(err)),
+            stack: err.stack
+          });
+        });
+    });
   });
 });
 
