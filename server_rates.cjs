@@ -111,7 +111,8 @@ app.get('/api/rates/view', (req, res) => {
       Logo_URL, 
       Service_Type, 
       Unit_of_Measure, 
-      Excel_Status 
+      Excel_Status,
+      utility_contact
     FROM rates_view
   `;
 
@@ -163,6 +164,12 @@ app.post('/api/rates/update', express.json(), async (req, res) => {
   const { changes } = req.body;
 
   console.log("📥 Cambios recibidos:", JSON.stringify(changes, null, 2));
+  console.log("🔍 Verificando campos utility_contact en los cambios:");
+  changes.forEach((change, index) => {
+    if (change.updated.utility_contact !== undefined) {
+      console.log(`   [${index}] utility_contact: "${change.original.utility_contact}" → "${change.updated.utility_contact}"`);
+    }
+  });
 
   if (!Array.isArray(changes)) {
     return res.status(400).json({ message: "Formato de cambios inválido" });
